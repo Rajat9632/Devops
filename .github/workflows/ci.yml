@@ -1,0 +1,78 @@
+name: Smart CI/CD Pipeline with Test Optimization
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  smart-test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for git diff on push
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Detect changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+            HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          else
+            # On push, compare against the previous commit
+            BASE_SHA=${{ github.event.before }}
+            HEAD_SHA=${{ github.sha }}
+          fi
+
+          echo "Comparing $BASE_SHA..$HEAD_SHA"
+          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | jq -R . | jq -s .)
+          echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Changed files: $CHANGED"
+
+      - name: Select relevant tests
+        id: select-tests
+        run: |
+          SELECTED=$(python test_selector.py --files '${{ steps.changed-files.outputs.changed }}')
+          echo "selected=$SELECTED" >> "$GITHUB_OUTPUT"
+          echo "Selected tests: $SELECTED"
+
+      - name: Run selected tests
+        run: |
+          SELECTED='${{ steps.select-tests.outputs.selected }}'
+          # Convert JSON array to space-separated paths for pytest
+          TEST_PATHS=$(echo "$SELECTED" | jq -r '.[]' | xargs)
+
+          if [ -z "$TEST_PATHS" ]; then
+            echo "No tests selected, falling back to full suite"
+            TEST_PATHS="tests/"
+          fi
+
+          echo "Running pytest on: $TEST_PATHS"
+          pytest -v -m "smoke or regression" -n auto $TEST_PATHS
+        # The step above will fail automatically if pytest returns non-zero,
+        # stopping the pipeline as required.
+
+      - name: Build Docker image
+        if: success()
+        run: |
+          docker build -t smart-ci-cd-app:${{ github.sha }} .
+          echo "Docker image built successfully."
+
+      - name: Run Docker container smoke test
+        if: success()
+        run: |
+          docker run --rm smart-ci-cd-app:${{ github.sha }}

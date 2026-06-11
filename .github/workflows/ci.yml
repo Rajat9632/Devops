@@ -39,7 +39,7 @@ jobs:
           fi
 
           echo "Comparing $BASE_SHA..$HEAD_SHA"
-          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | jq -R . | jq -s .)
+          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | jq -R . | jq -s -c .)
           echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
           echo "Changed files: $CHANGED"
 

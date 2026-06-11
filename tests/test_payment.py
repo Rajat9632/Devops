@@ -1,5 +1,6 @@
 """Tests for the payment module."""
 
+# pyrefly: ignore [missing-import]
 import pytest
 
 from app.payment import Payment, PaymentStatus, calculate_tax, calculate_total

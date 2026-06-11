@@ -62,9 +62,15 @@ jobs:
           fi
 
           echo "Running pytest on: $TEST_PATHS"
-          pytest -v -m "smoke or regression" -n auto $TEST_PATHS
-        # The step above will fail automatically if pytest returns non-zero,
-        # stopping the pipeline as required.
+          pytest -v -m "smoke or regression" -n auto --cov=app $TEST_PATHS
+
+      - name: Post Coverage Report to Summary
+        if: success() || failure()
+        run: |
+          echo "## 📊 Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "Here is the exact code coverage for your application." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
 
       - name: Build Docker image
         if: success()

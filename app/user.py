@@ -19,6 +19,12 @@ class User:
         status = "Active" if self.is_active else "Inactive"
         return f"{self.name} ({status})"
 
+    def rename(self, new_name: str) -> None:
+        """Rename the user."""
+        if not new_name.strip():
+            raise ValueError("Name cannot be empty")
+        self.name = new_name
+
     def update_email(self, new_email: str) -> None:
         """Update the user's email address."""
         if "@" not in new_email:

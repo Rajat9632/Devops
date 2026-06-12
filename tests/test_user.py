@@ -73,3 +73,16 @@ def test_get_display_name_inactive(sample_user: User) -> None:
     sample_user.deactivate()
     assert sample_user.get_display_name() == "Alice (Inactive)"
 
+
+@pytest.mark.smoke
+def test_user_rename(sample_user: User) -> None:
+    """Smoke test: renaming a user updates their name."""
+    sample_user.rename("Bob")
+    assert sample_user.name == "Bob"
+
+
+def test_user_rename_invalid(sample_user: User) -> None:
+    """Test that renaming to an empty name raises ValueError."""
+    with pytest.raises(ValueError):
+        sample_user.rename("   ")
+

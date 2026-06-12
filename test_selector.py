@@ -27,7 +27,8 @@ FILE_TO_TEST_MAP: dict[str, list[str]] = {
     "app/user.py": ["tests/test_user.py"],
     "app/payment.py": ["tests/test_payment.py"],
     "app/order.py": ["tests/test_order.py"],
-    "app/__init__.py": ["tests/test_user.py", "tests/test_payment.py"],
+    "app/inventory.py": ["tests/test_inventory.py"],
+    "app/__init__.py": ["tests/test_user.py", "tests/test_payment.py", "tests/test_order.py", "tests/test_inventory.py"],
 }
 
 # Default fallback when no specific mapping matches

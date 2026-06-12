@@ -26,6 +26,7 @@ logger = logging.getLogger("test_selector")
 FILE_TO_TEST_MAP: dict[str, list[str]] = {
     "app/user.py": ["tests/test_user.py"],
     "app/payment.py": ["tests/test_payment.py"],
+    "app/order.py": ["tests/test_order.py"],
     "app/__init__.py": ["tests/test_user.py", "tests/test_payment.py"],
 }
 
@@ -44,6 +45,15 @@ def get_test_paths_for_file(changed_file: str) -> list[str]:
     # Direct match
     if normalized in FILE_TO_TEST_MAP:
         return FILE_TO_TEST_MAP[normalized]
+
+    # Automatic inference: app/foo.py -> tests/test_foo.py
+    if normalized.startswith("app/") and normalized.endswith(".py"):
+        basename = os.path.basename(normalized)
+        if basename != "__init__.py":
+            inferred_test_file = f"tests/test_{basename}"
+            if os.path.exists(inferred_test_file):
+                logger.info("Auto-inferred test file: %s", inferred_test_file)
+                return [inferred_test_file]
 
     # Fallback: partial match on basename (e.g., user.py -> test_user.py)
     basename = os.path.basename(normalized)

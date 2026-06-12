@@ -3,7 +3,7 @@
 #eshwar
 #testing
 class User:
-    """Represents a user in the system."""
+    """Represents a user in the system. - Updated for demo"""
 
     def __init__(self, user_id: int, name: str, email: str) -> None:
         self.user_id = user_id
